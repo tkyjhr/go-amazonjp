@@ -17,15 +17,6 @@ const (
 	DefaultBaseProductURL = "https://www.amazon.co.jp/dp/"
 )
 
-var (
-	// AcceptableBaseProductURLs は Amazon の商品情報ページのベースURLとして受付可能な URL のリストです。
-	AcceptableBaseProductURLs = []string{
-		"https://www.amazon.co.jp/dp/product/",
-		"https://www.amazon.co.jp/gp/product/",
-		DefaultBaseProductURL,
-	}
-)
-
 // IsValidProductID は id が有効な商品 ID かどうかを返します。有効かどうかは 0-9 及びアルファベットのみで構成されているかで判断されます。
 func IsValidProductID(id string) bool {
 	ok, _ := regexp.MatchString(`[^0-9a-zA-Z]`, id)
@@ -42,33 +33,13 @@ func GetProductURL(id string) (string, bool) {
 
 // ExtractProductIDFromURL は商品情報ページの URL から商品 ID を返します。
 // 例えば「https://www.amazon.co.jp/gp/product/B00KYEH7GW?ref_=msw_list_shoveler_media_mangatop_0&storeType=ebooks」のような URL からは「B00KYEH7GW」が帰ります。
-func ExtractProductIDFromURL(url string) (string, error) {
-	url, ok := convertToDefaultURL(url)
-	if !ok {
-		return "", fmt.Errorf("%s is not a valid URL", url)
+func ExtractProductIDFromURL(url string) (string, bool) {
+	pattern := regexp.MustCompile(`https://www.amazon.co.jp/.*(dp|gp)/(product/)?([0-9a-zA-Z]+)/?.*`)
+	matches := pattern.FindStringSubmatch(url)
+	if matches == nil || len(matches) < 4 {
+		return "", false
 	}
-	var id string
-	slashIndex := strings.Index(url[len(DefaultBaseProductURL):], "/")
-	if slashIndex > 0 {
-		id = url[len(DefaultBaseProductURL) : len(DefaultBaseProductURL)+slashIndex]
-	} else {
-		id = url[len(DefaultBaseProductURL):]
-	}
-
-	if !IsValidProductID(id) {
-		return "", fmt.Errorf("extracted id `%s` is not valid", id)
-	}
-
-	return id, nil
-}
-
-func convertToDefaultURL(url string) (string, bool) {
-	for _, baseURL := range AcceptableBaseProductURLs {
-		if strings.HasPrefix(url, baseURL) {
-			return strings.Replace(url, baseURL, DefaultBaseProductURL, 1), true
-		}
-	}
-	return url, false
+	return matches[3], true
 }
 
 // Product は商品情報を表す構造体です。
@@ -93,9 +64,12 @@ func NewProductFromID(id string) (Product, error) {
 // NewProductFromURL は商品の URL から Product を作成します。ID 以外の情報は設定されません。
 func NewProductFromURL(url string) (Product, error) {
 	item := Product{}
-	var err error
-	item.ID, err = ExtractProductIDFromURL(url)
-	return item, err
+	var ok bool
+	item.ID, ok = ExtractProductIDFromURL(url)
+	if !ok {
+		return item, fmt.Errorf("failed to extract ProductID from %s", url)
+	}
+	return item, nil
 }
 
 // GetURL は商品の URL を返します。
@@ -187,7 +161,6 @@ func (p *Product) Update() error {
 	if ok {
 		// カテゴリが見つからないことは許容する。
 		p.Category = scrape.Attr(categoryNode, "data-category")
-		fmt.Println(p.Category)
 	}
 
 	priceNode, ok := scrape.Find(root, priceMatcher)

@@ -15,25 +15,41 @@ func TestIsValidProductID(t *testing.T) {
 }
 
 func TestExtractProductIDFromURL(t *testing.T) {
+
+	acceptableBaseProductURLs := []string{
+		"https://www.amazon.co.jp/dp/product/",
+		"https://www.amazon.co.jp/gp/product/",
+		DefaultBaseProductURL,
+	}
 	// ベースURLパターン
 	productID := "B01DUC3V14"
-	for i, baseURL := range AcceptableBaseProductURLs {
+	for i, baseURL := range acceptableBaseProductURLs {
 		url := baseURL + productID
-		id, err := ExtractProductIDFromURL(url)
-		if err != nil {
-			t.Error(err)
+		id, ok := ExtractProductIDFromURL(url)
+		if !ok {
+			t.Errorf("failed to extract ProductID from %v", url)
 		}
 		if id != "B01DUC3V14" {
-			t.Errorf("\n[%d]\nExpected : B01DUC3V14\nActual : %v\nURL : %v", i, id, url)
+			t.Errorf("\n[%d]\nExpected : %v\nActual : %v\nURL : %v", i, productID, id, url)
 		}
 	}
 	// 末尾にパラメータあり。
-	id, err := ExtractProductIDFromURL("https://www.amazon.co.jp/gp/product/" + productID + "/ref=series_rw_dp_sw")
-	if err != nil {
-		t.Error(err)
+	url := "https://www.amazon.co.jp/gp/product/" + productID + "/ref=series_rw_dp_sw"
+	id, ok := ExtractProductIDFromURL(url)
+	if !ok {
+		t.Errorf("failed to extract ProductID from %v", url)
 	}
 	if id != "B01DUC3V14" {
-		t.Errorf("Expected : B01DUC3V14\nActual : %v", id)
+		t.Errorf("Expected : %v\nActual : %v", productID, id)
+	}
+	// ランキングからのリンク。gp/dp の前に商品名
+	url = "https://www.amazon.co.jp/%E5%AE%87%E5%AE%99%E5%85%84%E5%BC%9F%EF%BC%88%EF%BC%93%EF%BC%92%EF%BC%89-%E3%83%A2%E3%83%BC%E3%83%8B%E3%83%B3%E3%82%B0%E3%82%B3%E3%83%9F%E3%83%83%E3%82%AF%E3%82%B9-%E5%B0%8F%E5%B1%B1%E5%AE%99%E5%93%89-ebook/dp/B077G328Y2/ref=zg_bs_2293143051_1?_encoding=UTF8&psc=1&refRID=Z6D6K8STPQ853V1V0CB2"
+	id, ok = ExtractProductIDFromURL(url)
+	if !ok {
+		t.Errorf("failed to extract ProductID from %v", url)
+	}
+	if id != "B077G328Y2" {
+		t.Errorf("Expected : %v\nActual : %v", "B077G328Y2", id)
 	}
 }
 
