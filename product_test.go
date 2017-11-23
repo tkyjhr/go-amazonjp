@@ -51,6 +51,15 @@ func TestExtractProductIDFromURL(t *testing.T) {
 	if id != "B077G328Y2" {
 		t.Errorf("Expected : %v\nActual : %v", "B077G328Y2", id)
 	}
+	// ランキングからのリンク（相対アドレス）
+	url = "/%E5%AE%87%E5%AE%99%E5%85%84%E5%BC%9F%EF%BC%88%EF%BC%93%EF%BC%92%EF%BC%89-%E3%83%A2%E3%83%BC%E3%83%8B%E3%83%B3%E3%82%B0%E3%82%B3%E3%83%9F%E3%83%83%E3%82%AF%E3%82%B9-%E5%B0%8F%E5%B1%B1%E5%AE%99%E5%93%89-ebook/dp/B077G328Y2/ref=zg_bs_2293143051_1?_encoding=UTF8&psc=1&refRID=7QM6SEMR96PRVP3BV9FX"
+	id, ok = ExtractProductIDFromURL(url)
+	if !ok {
+		t.Errorf("failed to extract ProductID from %v", url)
+	}
+	if id != "B077G328Y2" {
+		t.Errorf("Expected : %v\nActual : %v", "B077G328Y2", id)
+	}
 }
 
 func TestNewProductFromURL(t *testing.T) {

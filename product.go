@@ -34,12 +34,12 @@ func GetProductURL(id string) (string, bool) {
 // ExtractProductIDFromURL は商品情報ページの URL から商品 ID を返します。
 // 例えば「https://www.amazon.co.jp/gp/product/B00KYEH7GW?ref_=msw_list_shoveler_media_mangatop_0&storeType=ebooks」のような URL からは「B00KYEH7GW」が帰ります。
 func ExtractProductIDFromURL(url string) (string, bool) {
-	pattern := regexp.MustCompile(`https://www.amazon.co.jp/.*(dp|gp)/(product/)?([0-9a-zA-Z]+)/?.*`)
+	pattern := regexp.MustCompile(`(https://www.amazon.co.jp/)?.*(dp|gp)/(product/)?([0-9a-zA-Z]+)/?.*`)
 	matches := pattern.FindStringSubmatch(url)
-	if matches == nil || len(matches) < 4 {
+	if matches == nil || len(matches) < 5 {
 		return "", false
 	}
-	return matches[3], true
+	return matches[4], true
 }
 
 // Product は商品情報を表す構造体です。
