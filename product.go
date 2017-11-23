@@ -94,6 +94,7 @@ func (p *Product) Update() error {
 	if err != nil {
 		return err
 	}
+	defer resp.Body.Close()
 	root, err := html.Parse(resp.Body)
 	if err != nil {
 		return err
