@@ -2,6 +2,7 @@ package amazonjp
 
 import (
 	"fmt"
+	"net/http"
 	"testing"
 )
 
@@ -87,7 +88,7 @@ func TestProduct_Update(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	err = product.Update()
+	err = product.Update(http.DefaultClient)
 	if err != nil {
 		t.Error(err)
 	}

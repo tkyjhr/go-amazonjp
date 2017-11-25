@@ -89,8 +89,8 @@ func (p Product) String() string {
 }
 
 // Update は商品情報ページにアクセスして Product の内容を更新します。
-func (p *Product) Update() error {
-	resp, err := http.Get(p.GetURL())
+func (p *Product) Update(client* http.Client) error {
+	resp, err := client.Get(p.GetURL())
 	if err != nil {
 		return err
 	}
