@@ -82,10 +82,11 @@ func (p Product) String() string {
 	return fmt.Sprintf(
 		"[%s]\n"+
 			"Title         : %s\n"+
+			"Category      : %s\n"+
 			"Current Price : %d\n"+
 			"Point         : %dpt\n"+
 			"URL           : %s\n",
-		p.ID, p.Title, p.Price, p.Point, p.GetURL())
+		p.ID, p.Title, p.Category, p.Price, p.Point, p.GetURL())
 }
 
 // Update は商品情報ページにアクセスして Product の内容を更新します。
@@ -138,15 +139,12 @@ func (p *Product) Update(client* http.Client) error {
 	}
 
 	pointMatcher := func(n *html.Node) bool {
-		// 画面右側に「Kindle 価格: 値段」というタイプ（例： https://www.amazon.co.jp/dp/B004R9QACC ）
-		if n.DataAtom == atom.Td && scrape.Attr(n, "class") == "a-color-price a-align-bottom" &&
-			n.Parent != nil && n.Parent.DataAtom == atom.Tr && scrape.Attr(n.Parent, "class") == "loyalty-points" &&
-			strings.Contains(scrape.Text(n), "pt") {
+		// 画面右側に「Kindle 価格: 値段」というタイプ（例： https://www.amazon.co.jp/dp/B01DUC3V14 ）
+		if n.DataAtom == atom.Tr && scrape.Attr(n, "class") == "loyalty-points" && strings.Contains(scrape.Text(n), "pt") {
 			return true
 		}
-		// 画面右側の「1-Click で今すぐ買う」のボックスに値段表記がない（緑色のボックスの）タイプ（例： https://www.amazon.co.jp/dp/B01GI5F2FS/ ）
-		if n.DataAtom == atom.Td && scrape.Attr(n, "class") == "price" &&
-			strings.Contains(scrape.Text(n), "pt") {
+		// 画面中央の価格の下にポイント表記があるタイプ（例： https://www.amazon.co.jp/dp/B075RGZYZ3 ）
+		if n.DataAtom == atom.Span && scrape.Attr(n, "class") == "a-color-price" && strings.Contains(scrape.Text(n), "pt") {
 			return true
 		}
 		return false
@@ -178,15 +176,16 @@ func (p *Product) Update(client* http.Client) error {
 	}
 	p.Price = price
 
-	if point, ok := scrape.Find(root, pointMatcher); ok {
-		pointText := scrape.Text(point)
-		ptIndex := strings.Index(pointText, "pt")
-		if ptIndex < 0 {
-			return fmt.Errorf("pointNode for %s was found, but had unexpected text format : %s", p.GetURL(), pointText)
+	if pointNode, ok := scrape.Find(root, pointMatcher); ok {
+		pointNodeText := scrape.Text(pointNode)
+		r := regexp.MustCompile(`([0-9]+)pt`)
+		matches := r.FindStringSubmatch(pointNodeText)
+		if matches == nil {
+			return fmt.Errorf("pointNode for %s was found, but had unexpected text format : %s", p.GetURL(), pointNodeText)
 		}
-		point, err := strconv.Atoi(pointText[:ptIndex])
+		point, err := strconv.Atoi(matches[1])
 		if err != nil {
-			return fmt.Errorf("pointNode for %s was found, but had unexpected text format : %s", p.GetURL(), pointText)
+			return fmt.Errorf("pointNode for %s was found, but had unexpected text format : %s", p.GetURL(), pointNodeText)
 		}
 		p.Point = point
 	}

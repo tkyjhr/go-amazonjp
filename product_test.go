@@ -84,17 +84,33 @@ func TestNewProductFromId(t *testing.T) {
 }
 
 func TestProduct_Update(t *testing.T) {
-	product, err := NewProductFromURL("https://www.amazon.co.jp/gp/product/B01DUC3V14")
-	if err != nil {
-		t.Error(err)
+
+	testPatterns := []struct {
+		id string
+		title string
+		category string
+	} {
+		{"B01DUC3V14","AIの遺電子　１ (少年チャンピオン・コミックス)","digital-text"}, // Kindle漫画
+		{"B008CAG0I6", "アヒルと鴨のコインロッカー (創元推理文庫)", "digital-text"}, // Kindle一般書（小説）
+		{"B015Q7V9C4", "The Paper Menagerie (English Edition)", "digital-text"}, // Kindle洋書
+		{"B075RGZYZ3","NieR:Automata Arranged & Unreleased Tracks","music"}, // CD
+		{"1907117040","Bulletproof SSL and TLS","english-books"}, // TODO: 洋書（紙）。現在は価格、ポイントの取得に失敗する
 	}
-	err = product.Update(http.DefaultClient)
-	if err != nil {
-		t.Error(err)
+	for _, v := range testPatterns {
+		product, err := NewProductFromID(v.id)
+		if err != nil {
+			t.Error(err)
+		}
+		err = product.Update(http.DefaultClient)
+		if err != nil {
+			t.Error(err)
+		}
+		if product.Title != v.title {
+			t.Errorf("Expected : %v, Actual : %v", v.title, product.Title)
+		}
+		if product.Category != v.category {
+			t.Errorf("Expected : %v, Actual : %v", v.category, product.Category)
+		}
+		fmt.Print(product)
 	}
-	expectedTitle := "AIの遺電子　１ (少年チャンピオン・コミックス)"
-	if product.Title != expectedTitle {
-		t.Errorf("Expected : %v\nActual : %v", expectedTitle, product.Title)
-	}
-	fmt.Print(product)
 }
