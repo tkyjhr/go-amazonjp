@@ -129,9 +129,10 @@ func (p *Product) Update(client* http.Client) error {
 		}
 		// 画面右側の「1-Click で今すぐ買う」のボックスに値段表記がない（緑色のボックスの）タイプ
 		// 例： https://www.amazon.co.jp/dp/B01GI5F2FS
-		if n.DataAtom == atom.B && scrape.Attr(n, "class") == "priceLarge" {
+		if n.DataAtom == atom.Span && strings.Contains(scrape.Attr(n, "class"),"offer-price") {
 			return true
 		}
+		// 例：https://www.amazon.co.jp/dp/B075RGZYZ3
 		if n.DataAtom == atom.Span && scrape.Attr(n, "id") == "priceblock_ourprice" {
 			return true
 		}

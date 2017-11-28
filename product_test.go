@@ -94,7 +94,7 @@ func TestProduct_Update(t *testing.T) {
 		{"B008CAG0I6", "アヒルと鴨のコインロッカー (創元推理文庫)", "digital-text"}, // Kindle一般書（小説）
 		{"B015Q7V9C4", "The Paper Menagerie (English Edition)", "digital-text"}, // Kindle洋書
 		{"B075RGZYZ3","NieR:Automata Arranged & Unreleased Tracks","music"}, // CD
-		{"1907117040","Bulletproof SSL and TLS","english-books"}, // TODO: 洋書（紙）。現在は価格、ポイントの取得に失敗する
+		{"1907117040","Bulletproof SSL and TLS","english-books"}, // 洋書（紙）
 	}
 	for _, v := range testPatterns {
 		product, err := NewProductFromID(v.id)
