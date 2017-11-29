@@ -96,6 +96,9 @@ func (p *Product) Update(client* http.Client) error {
 		return err
 	}
 	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("http.StatusCode != http.StatusOK : %v", resp.StatusCode)
+	}
 	root, err := html.Parse(resp.Body)
 	if err != nil {
 		return err
