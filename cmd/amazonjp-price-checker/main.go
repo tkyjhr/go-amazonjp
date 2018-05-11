@@ -166,6 +166,7 @@ func checkProductsCommand(args []string) {
 		log.Printf("Checking \"%s\" ...\n", p.Title)
 		if err := p.Update(http.DefaultClient); err != nil {
 			log.Printf("Failed to update \"%s\" (%s)\n", p.Title, p.GetURL())
+			log.Println(err)
 			continue
 		}
 		if p.shouldNotify() {

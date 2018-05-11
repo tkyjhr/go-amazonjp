@@ -2,13 +2,14 @@ package amazonjp
 
 import (
 	"fmt"
-	"github.com/yhat/scrape"
-	"golang.org/x/net/html"
-	"golang.org/x/net/html/atom"
 	"net/http"
 	"regexp"
 	"strconv"
 	"strings"
+
+	"github.com/yhat/scrape"
+	"golang.org/x/net/html"
+	"golang.org/x/net/html/atom"
 )
 
 const (
@@ -90,8 +91,13 @@ func (p Product) String() string {
 }
 
 // Update は商品情報ページにアクセスして Product の内容を更新します。
-func (p *Product) Update(client* http.Client) error {
-	resp, err := client.Get(p.GetURL())
+func (p *Product) Update(client *http.Client) error {
+	req, err := http.NewRequest(http.MethodGet, p.GetURL(), nil)
+	if err != nil {
+		return err
+	}
+	req.Header.Set("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.10; rv:45.0) Gecho/20100101 Firefox/45.0)")
+	resp, err := client.Do(req)
 	if err != nil {
 		return err
 	}
@@ -132,7 +138,7 @@ func (p *Product) Update(client* http.Client) error {
 		}
 		// 画面右側の「1-Click で今すぐ買う」のボックスに値段表記がない（緑色のボックスの）タイプ
 		// 例： https://www.amazon.co.jp/dp/B01GI5F2FS
-		if n.DataAtom == atom.Span && strings.Contains(scrape.Attr(n, "class"),"offer-price") {
+		if n.DataAtom == atom.Span && strings.Contains(scrape.Attr(n, "class"), "offer-price") {
 			return true
 		}
 		// 例：https://www.amazon.co.jp/dp/B075RGZYZ3
